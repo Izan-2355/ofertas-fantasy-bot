@@ -24,12 +24,12 @@ tree = app_commands.CommandTree(client)
 
 # Vista persistente con el boton "Crear Oferta"
 class PersistentOfferView(View):
- def __init__(self):
- super().__init__(timeout=None) # Sin timeout para que sea permanente
- 
- @discord.ui.button(label="📩 Crear Oferta", style=discord.ButtonStyle.primary, custom_id="crear_oferta_button")
- async def crear_oferta_button(self, interaction: discord.Interaction, button: Button):
- await show_manager_selection(interaction)
+    def __init__(self):
+        super().__init__(timeout=None)  # Sin timeout para que sea permanente
+
+    @discord.ui.button(label="📩 Crear Oferta", style=discord.ButtonStyle.primary, custom_id="crear_oferta_button")
+    async def crear_oferta_button(self, interaction: discord.Interaction, button: Button):
+        await show_manager_selection(interaction)
 
 # Funcion para mostrar el modal de seleccion
 async def show_manager_selection(interaction: discord.Interaction):
