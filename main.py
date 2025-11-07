@@ -2,6 +2,7 @@ import discord
 from discord import app_commands
 from discord.ui import Select, View, Button
 import os
+import asyncio
 
 # Configuración
 TOKEN = os.getenv('DISCORD_TOKEN', 'MTQ2MjI3OTQwMzA3OTI3NDU5Ng.GozFPG.icils4mqDYCSazmgZB88zkji1zfhv5Ev-wPOZo4')
@@ -116,6 +117,7 @@ async def create_offer(interaction: discord.Interaction, target_member: discord.
         
         # Vista con botones para el canal de texto
         view = View(timeout=None)
+        close_votes = set()  # Para rastrear quién votó para cerrar
         
         # Botón Contraoferta
         contraoferta_button = Button(label="🔄 Contraoferta", style=discord.ButtonStyle.secondary, custom_id=f"contraoferta_{offer_counter}")
@@ -124,62 +126,84 @@ async def create_offer(interaction: discord.Interaction, target_member: discord.
                 await button_interaction.response.send_message("❌ Solo los participantes pueden usar este botón", ephemeral=True)
                 return
             
-            # Determinar quién hace la contraoferta
-            if button_interaction.user == creator:
-                new_target = target_member
-            else:
-                new_target = creator
-            
-            # Intercambiar permisos
-            await text_channel.set_permissions(button_interaction.user, 
-                view_channel=True, send_messages=True, read_message_history=True, connect=True, speak=True)
-            await text_channel.set_permissions(new_target,
-                view_channel=True, send_messages=True, read_message_history=True, connect=True, speak=True)
-            
             await button_interaction.response.send_message(f"✅ {button_interaction.user.mention} ha hecho una contraoferta", ephemeral=False)
         
         contraoferta_button.callback = contraoferta_callback
         view.add_item(contraoferta_button)
         
-        # Botón Cerrar
+        # Botón Cerrar con votación
         cerrar_button = Button(label="🔒 Cerrar Oferta", style=discord.ButtonStyle.danger, custom_id=f"cerrar_{offer_counter}")
         async def cerrar_callback(button_interaction: discord.Interaction):
+            nonlocal close_votes
             if button_interaction.user != creator and button_interaction.user != target_member:
                 await button_interaction.response.send_message("❌ Solo los participantes pueden cerrar la oferta", ephemeral=True)
                 return
             
-            await button_interaction.response.send_message(f"🔒 Oferta cerrada por {button_interaction.user.mention}. Eliminando canales...", ephemeral=False)
+            # Añadir voto
+            close_votes.add(button_interaction.user.id)
             
-            # Eliminar categoría y canales
-            for channel in category.channels:
-                await channel.delete()
-            await category.delete()
-            
-            # Eliminar de ofertas activas
-            if offer_counter in active_offers:
-                del active_offers[offer_counter]
+            # Verificar si ambos participantes votaron
+            if creator.id in close_votes and target_member.id in close_votes:
+                await button_interaction.response.send_message(
+                    f"✅ Ambos participantes confirmaron el cierre.\n⏰ La oferta se eliminará automáticamente en **1 hora**.\n\n💡 Tienes tiempo para revisar lo acordado.",
+                    ephemeral=False
+                )
+                
+                # Esperar 1 hora antes de eliminar
+                await asyncio.sleep(3600)  # 3600 segundos = 1 hora
+                
+                # Eliminar categoría y canales
+                for channel in category.channels:
+                    await channel.delete()
+                await category.delete()
+                
+                # Eliminar de ofertas activas
+                if offer_counter in active_offers:
+                    del active_offers[offer_counter]
+            else:
+                # Solo un participante votó
+                voted_user = button_interaction.user.mention
+                pending_user = target_member.mention if button_interaction.user == creator else creator.mention
+                await button_interaction.response.send_message(
+                    f"✋ {voted_user} quiere cerrar la oferta.\n⏳ Esperando confirmación de {pending_user}...",
+                    ephemeral=False
+                )
         
         cerrar_button.callback = cerrar_callback
         view.add_item(cerrar_button)
         
-        # Mensaje inicial en el canal de texto
-        welcome_msg = f"""🤝 **NEGOCIACIÓN DE OFERTA #{offer_counter}**
+        # Mensaje inicial en el canal de texto (mejorado y estiloso)
+        welcome_msg = f"""╔══════════════════════════════════════╗
+║   🤝 **NEGOCIACIÓN INICIADA** 🤝      ║
+╚══════════════════════════════════════╝
 
-**Participantes:**
-• {creator.mention}
-• {target_member.mention}
+**📊 Oferta #{offer_counter}**
 
-**📋 Normas de la negociación:**
-⛔ NO se puede pagar la cláusula durante una negociación activa
-✅ Tras finalizar, se puede hacer el clausulazo
-⏰ Los clausulazos solo están permitidos hasta el **jueves a las 12:00**
-🔒 El jugador cuya cláusula se negocia NO puede modificarla hasta que termine la jornada
+┌─────────────────────────────────┐
+│ **👥 PARTICIPANTES**
+├─────────────────────────────────┤
+│ • {creator.mention}
+│ • {target_member.mention}
+└─────────────────────────────────┘
 
-**Botones disponibles:**
-🔄 **Contraoferta** - Permite al otro participante responder
-🔒 **Cerrar Oferta** - Finaliza y elimina esta negociación
+╭━━━━━━━━━━━━━━━━━━━━━━━━━━━━╮
+┃  📋 **NORMAS DE NEGOCIACIÓN**
+╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━╯
 
-¡Buena suerte! 🍀
+⛔ **NO** se puede pagar la cláusula durante negociación activa
+✅ **Tras finalizar**, se puede hacer el clausulazo
+⏰ **Clausulazos** permitidos hasta: **Jueves 12:00**
+🔒 **Jugador negociado**: NO puede modificar su cláusula hasta fin de jornada
+
+╭━━━━━━━━━━━━━━━━━━━━━━━━━━━━╮
+┃  🎮 **CONTROLES**
+╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━╯
+
+🔄 **Contraoferta** → Permite al otro participante responder
+🔒 **Cerrar Oferta** → Ambos participantes deben confirmar
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+**¡Buena suerte en la negociación!** 🍀⚽
         """
         
         await text_channel.send(welcome_msg, view=view)
@@ -191,10 +215,21 @@ async def create_offer(interaction: discord.Interaction, target_member: discord.
             'target': target_member.id
         }
         
+        # Mensaje de confirmación efímero con auto-eliminación en 3 minutos
+        confirmation_msg = await interaction.response.send_message(
+            f"✅ **Oferta creada exitosamente**\n\n📂 Categoría: {category.name}\n🔊 Canal de voz: {voice_channel.mention}\n💬 Canal de texto: {text_channel.mention}\n\n⏰ Este mensaje se eliminará automáticamente en 3 minutos.",
+            ephemeral=True
+        )
+        
         # Incrementar contador
         offer_counter += 1
         
-        await interaction.response.send_message(f"✅ Oferta creada: {category.name}\n📂 Canales: {voice_channel.mention} y {text_channel.mention}", ephemeral=True)
+        # Eliminar mensaje de confirmación después de 3 minutos
+        await asyncio.sleep(180)  # 180 segundos = 3 minutos
+        try:
+            await interaction.delete_original_response()
+        except:
+            pass  # Por si el mensaje ya fue eliminado
         
     except Exception as e:
         await interaction.response.send_message(f"❌ Error al crear la oferta: {e}", ephemeral=True)
@@ -217,22 +252,25 @@ async def on_ready():
                 if message.author == client.user:
                     await message.delete()
             
-            # Mensaje con normas y botón
-            normas_message = """👋 **¡A negociar y disfrutar!** ⚽👊
+            # Mensaje con normas y botón (mejorado y estiloso)
+            normas_message = """╔═══════════════════════════════════════╗
+║  👋 **¡A NEGOCIAR Y DISFRUTAR!** ⚽👊  ║
+╚═══════════════════════════════════════╝
 
-👉 **CREA UNA OFERTA:**
+╭━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╮
+┃  📋 **RECUERDA LAS NORMAS**
+╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╯
 
-Haz clic derecho en este mensaje ➜ **Crear hilo** ➜ Nombra tu oferta ➜ Añade al manager con @ ➜ ¡Negociad!
+⛔ **No se puede pagar la cláusula** durante una negociación activa
+✅ **Tras finalizar**, se puede hacer clausulazo
+⏰ **Clausulazos solo hasta**: **Jueves a las 12:00**
+🔒 **Jugador cuya cláusula se negocia**: No puede modificarla hasta que termine la jornada
 
-Cada oferta tendrá su propio hilo privado que se cerrará automáticamente cuando termine la negociación.
+╭━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╮
+┃  🎯 **¿LISTO PARA NEGOCIAR?**
+╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╯
 
-**📋 Recuerda las normas:**
-⛔ **No se puede pagar la cláusula durante una negociación activa**
-✅ **Tras finalizar, se puede hacer clausulazo**
-⏰ **Clausulazos solo h** asta: **jueves a las 12:00**
-🔒 **Jugador cuya cláusula se negocia:** No puede modificar su cláusula hasta que termine la jornada
-
-🔽 **Haz clic en el botón para crear una oferta:**
+🔽 **Haz clic en el botón de abajo para crear una oferta**
             """
             
             view = PersistentOfferView()
