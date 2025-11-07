@@ -124,7 +124,7 @@ async def create_offer(interaction: discord.Interaction, target_member: discord.
         if fantasy_category and modo_carreras_category:
             fantasy_pos = fantasy_category.position
             modo_carreras_pos = modo_carreras_category.position
-            position = max(fantasy_pos, modo_carreras_pos - 1) + 1
+            position = max(fantasy_pos, modo_carreras_pos - 1) - 1
         else:
             position = None  # Si alguna no existe, deja la posición por defecto
         
