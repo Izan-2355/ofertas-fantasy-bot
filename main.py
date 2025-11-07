@@ -4,7 +4,7 @@ from discord.ui import Select, View, Button
 import os
 import asyncio
 
-# Configuración
+# Configuracion
 TOKEN = os.getenv('DISCORD_TOKEN', 'MTQ2MjI3OTQwMzA3OTI3NDU5Ng.GozFPG.icils4mqDYCSazmgZB88zkji1zfhv5Ev-wPOZo4')
 GUILD_ID = 1310024114312056832
 OFERTAS_CHANNEL_ID = 1436265469966290976  # ID del canal #ofertas
@@ -22,7 +22,7 @@ intents.message_content = True
 client = discord.Client(intents=intents)
 tree = app_commands.CommandTree(client)
 
-# Vista persistente con el botón "Crear Oferta"
+# Vista persistente con el boton "Crear Oferta"
 class PersistentOfferView(View):
     def __init__(self):
         super().__init__(timeout=None)  # Sin timeout para que sea permanente
@@ -31,14 +31,14 @@ class PersistentOfferView(View):
     async def crear_oferta_button(self, interaction: discord.Interaction, button: Button):
         await show_manager_selection(interaction)
 
-# Función para mostrar el modal de selección
+# Funcion para mostrar el modal de seleccion
 async def show_manager_selection(interaction: discord.Interaction):
     # Obtener rol Fantasy Manager
     guild = interaction.guild
     fantasy_role = discord.utils.get(guild.roles, name="Fantasy Manager")
     
     if not fantasy_role:
-        await interaction.response.send_message("❌ No se encontró el rol Fantasy Manager", ephemeral=True)
+        await interaction.response.send_message("❌ No se encontro el rol Fantasy Manager", ephemeral=True)
         return
     
     # Filtrar miembros con el rol
@@ -63,16 +63,16 @@ async def show_manager_selection(interaction: discord.Interaction):
     view = View()
     view.add_item(select)
     
-    await interaction.response.send_message("👤 Selecciona a quién quieres hacer la oferta:", view=view, ephemeral=True)
-        
-    # Auto-eliminar el modal después de 3 minutos
-    await asyncio.sleep(180) # 180 segundos = 3 minutos
+    await interaction.response.send_message("👤 Selecciona a quien quieres hacer la oferta:", view=view, ephemeral=True)
+    
+    # Auto-eliminar el modal despues de 3 minutos
+    await asyncio.sleep(180)  # 180 segundos = 3 minutos
     try:
         await interaction.delete_original_response()
     except:
-        pass # Por si el mensaje ya fue eliminado
+        pass  # Por si el mensaje ya fue eliminado
 
-# Función para crear la oferta
+# Funcion para crear la oferta
 async def create_offer(interaction: discord.Interaction, target_member: discord.Member):
     global offer_counter
     
@@ -80,14 +80,14 @@ async def create_offer(interaction: discord.Interaction, target_member: discord.
         guild = interaction.guild
         creator = interaction.user
         
-        # Nombre de la categoría
+        # Nombre de la categoria
         category_name = f"Oferta - {offer_counter} - {creator.display_name}"
         
         # Obtener roles necesarios
         fantasy_role = discord.utils.get(guild.roles, name="Fantasy Manager")
         everyone_role = guild.default_role
         
-        # Permisos para la categoría
+        # Permisos para la categoria
         overwrites = {
             everyone_role: discord.PermissionOverwrite(view_channel=False),
             creator: discord.PermissionOverwrite(
@@ -113,37 +113,24 @@ async def create_offer(interaction: discord.Interaction, target_member: discord.
             )
         }
         
-        # Crear categoría
-            # Obtener posición para insertar entre Fantasy y Modo Carreras
-    fantasy_category = discord.utils.get(guild.categories, name="Fantasy")
-    modo_carreras_category = discord.utils.get(guild.categories, name="Modo Carreras")
-    
-    # Calcular la posición: entre Fantasy y Modo Carreras
-    if fantasy_category and modo_carreras_category:
-        fantasy_pos = fantasy_category.position
-        modo_carreras_pos = modo_carreras_category.position
-        position = max(fantasy_pos, modo_carreras_pos - 1) + 1
-    else:
-        position = None  # Dejar en la posición por defecto
-    
-    # Crear categoría con posición especificada
-    category = await guild.create_category(category_name, overwrites=overwrites, position=position)
+        # Crear categoria
+        category = await guild.create_category(category_name, overwrites=overwrites)
         
         # Crear canal de voz
         voice_channel = await guild.create_voice_channel("🔊 Voz", category=category)
         
         # Crear canal de texto
-        text_channel = await guild.create_text_channel("💬 Negociación", category=category)
+        text_channel = await guild.create_text_channel("💬 Negociacion", category=category)
         
         # Vista con botones para el canal de texto
         view = View(timeout=None)
-        close_votes = set()  # Para rastrear quién votó para cerrar
+        close_votes = set()  # Para rastrear quien voto para cerrar
         
-        # Botón Contraoferta
+        # Boton Contraoferta
         contraoferta_button = Button(label="🔄 Contraoferta", style=discord.ButtonStyle.secondary, custom_id=f"contraoferta_{offer_counter}")
         async def contraoferta_callback(button_interaction: discord.Interaction):
             if button_interaction.user != creator and button_interaction.user != target_member:
-                await button_interaction.response.send_message("❌ Solo los participantes pueden usar este botón", ephemeral=True)
+                await button_interaction.response.send_message("❌ Solo los participantes pueden usar este boton", ephemeral=True)
                 return
             
             await button_interaction.response.send_message(f"✅ {button_interaction.user.mention} ha hecho una contraoferta", ephemeral=False)
@@ -151,7 +138,7 @@ async def create_offer(interaction: discord.Interaction, target_member: discord.
         contraoferta_button.callback = contraoferta_callback
         view.add_item(contraoferta_button)
         
-        # Botón Cerrar con votación
+        # Boton Cerrar con votacion
         cerrar_button = Button(label="🔒 Cerrar Oferta", style=discord.ButtonStyle.danger, custom_id=f"cerrar_{offer_counter}")
         async def cerrar_callback(button_interaction: discord.Interaction):
             nonlocal close_votes
@@ -159,20 +146,20 @@ async def create_offer(interaction: discord.Interaction, target_member: discord.
                 await button_interaction.response.send_message("❌ Solo los participantes pueden cerrar la oferta", ephemeral=True)
                 return
             
-            # Añadir voto
+            # Anadir voto
             close_votes.add(button_interaction.user.id)
             
             # Verificar si ambos participantes votaron
             if creator.id in close_votes and target_member.id in close_votes:
                 await button_interaction.response.send_message(
-                    f"✅ Ambos participantes confirmaron el cierre.\n⏰ La oferta se eliminará automáticamente en **1 hora**.\n\n💡 Tienes tiempo para revisar lo acordado.",
+                    f"✅ Ambos participantes confirmaron el cierre.\n⏰ La oferta se eliminara automaticamente en **1 hora**.\n\n💡 Tienes tiempo para revisar lo acordado.",
                     ephemeral=False
                 )
                 
                 # Esperar 1 hora antes de eliminar
                 await asyncio.sleep(3600)  # 3600 segundos = 1 hora
                 
-                # Eliminar categoría y canales
+                # Eliminar categoria y canales
                 for channel in category.channels:
                     await channel.delete()
                 await category.delete()
@@ -181,49 +168,42 @@ async def create_offer(interaction: discord.Interaction, target_member: discord.
                 if offer_counter in active_offers:
                     del active_offers[offer_counter]
             else:
-                # Solo un participante votó
+                # Solo un participante voto
                 voted_user = button_interaction.user.mention
                 pending_user = target_member.mention if button_interaction.user == creator else creator.mention
                 await button_interaction.response.send_message(
-                    f"✋ {voted_user} quiere cerrar la oferta.\n⏳ Esperando confirmación de {pending_user}...",
+                    f"✋ {voted_user} quiere cerrar la oferta.\n⏳ Esperando confirmacion de {pending_user}...",
                     ephemeral=False
                 )
         
         cerrar_button.callback = cerrar_callback
         view.add_item(cerrar_button)
         
-        # Mensaje inicial en el canal de texto (mejorado y estiloso)
+        # Mensaje inicial en el canal de texto
         welcome_msg = f"""╔══════════════════════════════════════╗
-║   🤝 **NEGOCIACIÓN INICIADA** 🤝      ║
+║ 🤝 **NEGOCIACION INICIADA** 🤝 ║
 ╚══════════════════════════════════════╝
-
 **📊 Oferta #{offer_counter}**
-
 ┌─────────────────────────────────┐
 │ **👥 PARTICIPANTES**
 ├─────────────────────────────────┤
 │ • {creator.mention}
 │ • {target_member.mention}
 └─────────────────────────────────┘
-
 ╭━━━━━━━━━━━━━━━━━━━━━━━━━━━━╮
-┃  📋 **NORMAS DE NEGOCIACIÓN**
+┃ 📋 **NORMAS DE NEGOCIACION**
 ╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━╯
-
-⛔ **NO** se puede pagar la cláusula durante negociación activa
+⛔ **NO** se puede pagar la clausula durante negociacion activa
 ✅ **Tras finalizar**, se puede hacer el clausulazo
 ⏰ **Clausulazos** permitidos hasta: **Jueves 12:00**
-🔒 **Jugador negociado**: NO puede modificar su cláusula hasta fin de jornada
-
+🔒 **Jugador negociado**: NO puede modificar su clausula hasta fin de jornada
 ╭━━━━━━━━━━━━━━━━━━━━━━━━━━━━╮
-┃  🎮 **CONTROLES**
+┃ 🎮 **CONTROLES**
 ╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━╯
-
 🔄 **Contraoferta** → Permite al otro participante responder
 🔒 **Cerrar Oferta** → Ambos participantes deben confirmar
-
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-**¡Buena suerte en la negociación!** 🍀⚽
+**¡Buena suerte en la negociacion!** 🍀⚽
         """
         
         await text_channel.send(welcome_msg, view=view)
@@ -235,22 +215,22 @@ async def create_offer(interaction: discord.Interaction, target_member: discord.
             'target': target_member.id
         }
         
-        # Mensaje de confirmación efímero con auto-eliminación en 3 minutos
+        # Mensaje de confirmacion efimero con auto-eliminacion en 3 minutos
         confirmation_msg = await interaction.response.send_message(
-            f"✅ **Oferta creada exitosamente**\n\n📂 Categoría: {category.name}\n🔊 Canal de voz: {voice_channel.mention}\n💬 Canal de texto: {text_channel.mention}\n\n⏰ Este mensaje se eliminará automáticamente en 3 minutos.",
+            f"✅ **Oferta creada exitosamente**\n\n📂 Categoria: {category.name}\n🔊 Canal de voz: {voice_channel.mention}\n💬 Canal de texto: {text_channel.mention}\n\n⏰ Este mensaje se eliminara automaticamente en 3 minutos.",
             ephemeral=True
         )
         
         # Incrementar contador
         offer_counter += 1
         
-        # Eliminar mensaje de confirmación después de 3 minutos
+        # Eliminar mensaje de confirmacion despues de 3 minutos
         await asyncio.sleep(180)  # 180 segundos = 3 minutos
         try:
             await interaction.delete_original_response()
         except:
             pass  # Por si el mensaje ya fue eliminado
-        
+    
     except Exception as e:
         await interaction.response.send_message(f"❌ Error al crear la oferta: {e}", ephemeral=True)
         print(f"Error: {e}")
@@ -264,7 +244,7 @@ async def on_ready():
         print(f'✅ Bot conectado como {client.user}')
         print(f'✅ Comandos sincronizados en el servidor')
         
-        # Enviar mensaje permanente con botón en el canal #ofertas
+        # Enviar mensaje permanente con boton en el canal #ofertas
         ofertas_channel = client.get_channel(OFERTAS_CHANNEL_ID)
         if ofertas_channel:
             # Limpiar mensajes anteriores del bot (opcional)
@@ -272,30 +252,26 @@ async def on_ready():
                 if message.author == client.user:
                     await message.delete()
             
-            # Mensaje con normas y botón (mejorado y estiloso)
+            # Mensaje con normas y boton
             normas_message = """╔═══════════════════════════════════════╗
-║  👋 **¡A NEGOCIAR Y DISFRUTAR!** ⚽👊  ║
+║ 👋 **¡A NEGOCIAR Y DISFRUTAR!** ⚽👊 ║
 ╚═══════════════════════════════════════╝
-
 ╭━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╮
-┃  📋 **RECUERDA LAS NORMAS**
+┃ 📋 **RECUERDA LAS NORMAS**
 ╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╯
-
-⛔ **No se puede pagar la cláusula** durante una negociación activa
+⛔ **No se puede pagar la clausula** durante una negociacion activa
 ✅ **Tras finalizar**, se puede hacer clausulazo
 ⏰ **Clausulazos solo hasta**: **Jueves a las 12:00**
-🔒 **Jugador cuya cláusula se negocia**: No puede modificarla hasta que termine la jornada
-
+🔒 **Jugador cuya clausula se negocia**: No puede modificarla hasta que termine la jornada
 ╭━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╮
-┃  🎯 **¿LISTO PARA NEGOCIAR?**
+┃ 🎯 **¿LISTO PARA NEGOCIAR?**
 ╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╯
-
-🔽 **Haz clic en el botón de abajo para crear una oferta**
+🔽 **Haz clic en el boton de abajo para crear una oferta**
             """
             
             view = PersistentOfferView()
             await ofertas_channel.send(normas_message, view=view)
-            print(f'✅ Mensaje con botón enviado en #{ofertas_channel.name}')
+            print(f'✅ Mensaje con boton enviado en #{ofertas_channel.name}')
     except Exception as e:
         print(f'❌ Error al sincronizar comandos: {e}')
 
