@@ -197,24 +197,24 @@ async def create_offer(interaction: discord.Interaction, target_member: discord.
         
         # Mensaje inicial en el canal de texto
         welcome_msg = f"""╔══════════════════════════════════════╗
-║ 🤝 **NEGOCIACION INICIADA** 🤝 ║
+║ 🤝 **NEGOCIACION INICIADA** 🤝      ║
 ╚══════════════════════════════════════╝
 **📊 Oferta #{offer_counter}**
 ┌─────────────────────────────────┐
-│ **👥 PARTICIPANTES**
+│ **👥 PARTICIPANTES**            │
 ├─────────────────────────────────┤
-│ • {creator.mention}
-│ • {target_member.mention}
+│ • {creator.mention}             │
+│ • {target_member.mention}       │
 └─────────────────────────────────┘
 ╭━━━━━━━━━━━━━━━━━━━━━━━━━━━━╮
-┃ 📋 **NORMAS DE NEGOCIACION**
+┃ 📋 **NORMAS DE NEGOCIACION**│
 ╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━╯
 ⛔ **NO** se puede pagar la clausula durante negociacion activa
 ✅ **Tras finalizar**, se puede hacer el clausulazo
 ⏰ **Clausulazos** permitidos hasta: **Jueves 12:00**
 🔒 **Jugador negociado**: NO puede modificar su clausula hasta fin de jornada
 ╭━━━━━━━━━━━━━━━━━━━━━━━━━━━━╮
-┃ 🎮 **CONTROLES**
+┃ 🎮 **CONTROLES**           │
 ╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━╯
 🔄 **Contraoferta** → Permite al otro participante responder
 🔒 **Cerrar Oferta** → Ambos participantes deben confirmar
@@ -273,14 +273,14 @@ async def on_ready():
 ║ 👋 **¡A NEGOCIAR Y DISFRUTAR!** ⚽👊 ║
 ╚═══════════════════════════════════════╝
 ╭━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╮
-┃ 📋 **RECUERDA LAS NORMAS**
+┃ 📋 **RECUERDA LAS NORMAS**   │
 ╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╯
 ⛔ **No se puede pagar la clausula** durante una negociacion activa
 ✅ **Tras finalizar**, se puede hacer clausulazo
 ⏰ **Clausulazos solo hasta**: **Jueves a las 12:00**
 🔒 **Jugador cuya clausula se negocia**: No puede modificarla hasta que termine la jornada
 ╭━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╮
-┃ 🎯 **¿LISTO PARA NEGOCIAR?**
+┃ 🎯 **¿LISTO PARA NEGOCIAR?**  │
 ╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╯
 🔽 **Haz clic en el boton de abajo para crear una oferta**
             """
