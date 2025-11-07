@@ -115,6 +115,22 @@ async def create_offer(interaction: discord.Interaction, target_member: discord.
         
         # Crear categoria
         # Obtener posiciones de las categorias Fantasy y Modo Carreras         fantasy_category = discord.utils.get(guild.categories, name="Fantasy")         modo_carreras_category = discord.utils.get(guild.categories, name="Modo Carreras")                  # Calcular la posicion: entre Fantasy y Modo Carreras         if fantasy_category and modo_carreras_category:             fantasy_pos = fantasy_category.position             modo_carreras_pos = modo_carreras_category.position             position = max(fantasy_pos, modo_carreras_pos - 1) + 1         else:             position = None  # Dejar en la posicion por defecto                  # Crear categoria con posicion especificada         category = await guild.create_category(category_name, overwrites=overwrites, position=position)
+
+        # Obtener categorías existentes
+        fantasy_category = discord.utils.get(guild.categories, name="Fantasy")
+        modo_carreras_category = discord.utils.get(guild.categories, name="Modo Carreras")
+        
+        # Calcular posición para la nueva categoría (entre Fantasy y Modo Carreras)
+        if fantasy_category and modo_carreras_category:
+            fantasy_pos = fantasy_category.position
+            modo_carreras_pos = modo_carreras_category.position
+            position = max(fantasy_pos, modo_carreras_pos - 1) + 1
+        else:
+            position = None  # Si alguna no existe, deja la posición por defecto
+        
+        # Crear la categoría en la posición calculada
+        category = await guild.create_category(category_name, overwrites=overwrites, position=position)
+
         
         # Crear canal de voz
         voice_channel = await guild.create_voice_channel("🔊 Voz", category=category)
