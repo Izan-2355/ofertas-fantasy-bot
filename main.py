@@ -65,8 +65,8 @@ async def show_manager_selection(interaction: discord.Interaction):
     
     await interaction.response.send_message("👤 Selecciona a quien quieres hacer la oferta:", view=view, ephemeral=True)
     
-    # Auto-eliminar el modal despues de 3 minutos
-    await asyncio.sleep(180)  # 180 segundos = 3 minutos
+    # Auto-eliminar el modal despues de 1 minutos
+    await asyncio.sleep(60)  # 60 segundos = 1 minutos
     try:
         await interaction.delete_original_response()
     except:
@@ -224,8 +224,8 @@ async def create_offer(interaction: discord.Interaction, target_member: discord.
         # Incrementar contador
         offer_counter += 1
         
-        # Eliminar mensaje de confirmacion despues de 3 minutos
-        await asyncio.sleep(180)  # 180 segundos = 3 minutos
+        # Eliminar mensaje de confirmacion despues de 1 minutos
+        await asyncio.sleep(60)  # 60 segundos = 1 minutos
         try:
             await interaction.delete_original_response()
         except:
