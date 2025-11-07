@@ -4,8 +4,7 @@ from discord.ui import Select, View, Button
 import os
 
 # Configuración
-TOKEN = os.getenv('DISCORD_TOKEN', 'MTQ2Mj
-I3OTQwMzA3OTI3NDU5Ng.GozFPG.icils4mqDYCSazmgZB88zkji1zfhv5Ev-wPOZo4')
+TOKEN = os.getenv('DISCORD_TOKEN', 'MTQ2MjI3OTQwMzA3OTI3NDU5Ng.GozFPG.icils4mqDYCSazmgZB88zkji1zfhv5Ev-wPOZo4')
 GUILD_ID = 1310024114312056832
 OFERTAS_CHANNEL_ID = 1436265469966290976  # ID del canal #ofertas
 
